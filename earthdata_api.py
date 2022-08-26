@@ -29,11 +29,12 @@ def earthdata_granule_search(product, version, bounding_box, timestampsUTC, sear
     shortname_id_str = "short_name={}".format(product)
     version_str = "version={}".format(version)
     
-    # compose search string for bounding box
-    bounding_box_str = "bounding_box[]={ll_lon},{ll_lat},{ur_lon},{ur_lat}".format(ll_lon=bounding_box[0], 
-                                                                                ll_lat=bounding_box[1], 
-                                                                                ur_lon=bounding_box[2], 
-                                                                                ur_lat=bounding_box[3])
+    if bounding_box != None:
+        # compose search string for bounding box
+        bounding_box_str = "bounding_box[]={ll_lon},{ll_lat},{ur_lon},{ur_lat}".format(ll_lon=bounding_box[0], 
+                                                                                    ll_lat=bounding_box[1], 
+                                                                                    ur_lon=bounding_box[2], 
+                                                                                    ur_lat=bounding_box[3])
     
     # if timestamp provided is not an iterable (such as if it is a single timestamp or datetime object), try to make it a list
     if type(timestampsUTC) != list:
@@ -56,8 +57,12 @@ def earthdata_granule_search(product, version, bounding_box, timestampsUTC, sear
         end_date_str = "{}:00:00Z".format(end_date.strftime('%Y-%m-%dT%H'))
         time_range_str = "temporal=" + start_date_str + "," + end_date_str
         
-        # build the whole request URL and make the request.get
-        response = requests.get(url+"&"+shortname_id_str+"&"+version_str+"&"+bounding_box_str+"&"+time_range_str)
+        if bounding_box != None:
+            # build the whole request URL and make the request.get
+            response = requests.get(url+"&"+shortname_id_str+"&"+version_str+"&"+bounding_box_str+"&"+time_range_str)
+        else:
+            # without bounding box
+            response = requests.get(url+"&"+shortname_id_str+"&"+version_str+"&"+time_range_str)
         
         # read the response CSV and put in a temporary dataframe
         df = pd.read_csv(io.StringIO(response.text))
